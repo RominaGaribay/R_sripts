@@ -63,8 +63,8 @@ enaho37 = data.frame(
 "5.0 Seleccionar variables"
   #mantener solo variables indicadas en c(....,....,...)
 
-enaho02 <- enaho02[ , c("conglome", "vivienda", "hogar" , "codperso",
-                       "ubigeo", "dominio" ,"estrato" ,"p208a", "p209",
+enaho02 <- enaho02[ , c("conglome", "vivienda", "hogar" ,
+                       "ubigeo", "dominio" ,"estrato" , "p208a", "p209",
                        "p207", "p203", "p201p" , "p204",  "facpob07")]
 
 enaho03 <- enaho03[ , c("conglome", "vivienda", "hogar" , "codperso",
@@ -76,19 +76,19 @@ enaho05 <- enaho05[ , c("conglome", "vivienda", "hogar" , "codperso",
                         "d556t2" , "d557t" , "d558t" , "ocu500" , "i530a" , "i541a")]
 
 
-" 6.0 Merge section (master =x , user= y) "
+" 6.0 Merge section (master = x , user= y) "
 # by: variable que permite identificar las observaciones en común en las bases de datos
 # T = Todos
 
 
 " _merge3 == 1"
 
-enaho_merge <- merge(enaho02, enaho03,
+enaho_merge_left <- merge(enaho02, enaho03,
                    by = c("conglome", "vivienda", "hogar"),
                    all.x = T
                    )
 
-# all.x = T : Preserva todas las observaciones de la izquierda
+# all.x = T : Preserva todas las observaciones de la izquierda 
 # all.x = F  valor predeterminado 
 
 
@@ -106,29 +106,28 @@ enaho_merge_right <- merge(enaho02, enaho05,
 enaho_merge_inner <- merge(enaho02, enaho01,
                      by = c("conglome", "vivienda", "hogar"),
                      all.x = F, all.y = F
-                       )
+                        )
 
-enaho_merge <- merge(enaho02, enaho01,
+enaho_merge_inner2 <- merge(enaho02, enaho01,
                      by = c("conglome", "vivienda", "hogar")
-                  )
+                        )
 
-
-enaho_merge_outer <- merge(enaho02, enaho05,
-                           by = c("conglome", "vivienda", "hogar", "codperso"),
-                           all.x= T, all.y = T
-)
 
 " Match outer = todos los valores de ambas datas" 
 
-enaho_merge <- merge(enaho02, enaho01,
+enaho_merge_outer1 <- merge(enaho02, enaho37,
                      by = c("conglome", "vivienda", "hogar"),
                      all = T
-)
+                        )
 
+enaho_merge_outer2 <- merge(enaho02, enaho05,
+                           by = c("conglome", "vivienda", "hogar", "codperso"),
+                           all.x= T, all.y = T
+                        )
 
 # Sufijos para crear nombres de columnas únicos
 
-enaho_merge <- merge(enaho02, enaho01,
+enaho_merge_s1 <- merge(enaho02, enaho01,
                      by = c("conglome", "vivienda", "hogar"),
                      all.x = T, suffixes = c("","")
                       )
@@ -136,14 +135,17 @@ enaho_merge <- merge(enaho02, enaho01,
 enaho_merge <- merge(enaho02, enaho01,
                      by = c("conglome", "vivienda", "hogar"),
                      all.x = T, suffixes = c("",".y")
-)
+                      )
 
-
-#---------------------- Merge in Loop ------------------------------------
+" 7.0 Merge in loop"
 
 # <-  shortcut Alt + - 
 
+  # 7.1. Dataset de hogar
+
+# Juntar base enaho01 + enaho34 + enaho37
 num = list(enaho34 , enaho37) # lista de data.frames
+  # es decir, la lista es [enaho34 , enaho37]
 
 merge_hog = enaho01 # Master Data
 
@@ -157,31 +159,32 @@ for (i in num){
 
 names(merge_hog)
 
-# Individual dataset
+  # 7.2. Dataset individual
 
-num = list(enaho03 , enaho04, enaho05 ) # lista de data.frames
+num = list( enaho04, enaho05 ) # lista de data.frames
 
-merge_ind = enaho02 # Master Data
+merge_ind = enaho03 # Master Data
 
 for (i in num){
   
   merge_ind <- merge(merge_ind, i,
                      by = c("conglome", "vivienda", "hogar","codperso"),
                      all.x = T, suffixes = c("",".y")
-  )
-}
+                      )
+              }
 
 names(merge_ind)
 
 
 #----------------------------------------------------------
-
+  #Juntar bases previas
 
 merge_base <- merge(merge_ind, merge_hog,
                    by = c("conglome", "vivienda", "hogar"),
                    all.x = T, suffixes = c("",".y"))
 
 index <- grep(".y$", colnames(merge_base))
+  # da ubicaciones de nombres que tengan '.y$' de la lista 'colnames(merge_base)'  
 
 
 merge_base_2019 <- merge_base[, - index]
